@@ -1,0 +1,79 @@
+/* Styles du renderer générique de plugin. Consommés à l'identique par les deux
+   frontends jumeaux. Toutes les couleurs passent par les tokens Essensys
+   (--essensys-*), donc thèmes clair/sombre gérés par l'app hôte. */
+
+.ess-plugin {
+  font-family: var(--font, ui-sans-serif, system-ui, sans-serif);
+  color: var(--essensys-text-main, #111827);
+  background: var(--essensys-bg-card, #fff);
+  border: 1px solid var(--essensys-border, #e2e8f0);
+  border-radius: 14px;
+  padding: 14px 15px;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
+}
+
+.ess-plugin header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ess-plugin__title,
+.ess-plugin h3 {
+  font-size: 13px;
+  font-weight: 650;
+  margin: 0;
+}
+
+.ess-plugin__primary {
+  font-size: 26px;
+  font-weight: 750;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  margin-top: 8px;
+}
+
+.ess-plugin__stale {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--essensys-warning, #f59e0b);
+  background: color-mix(in srgb, var(--essensys-warning, #f59e0b) 15%, transparent);
+  padding: 2px 6px;
+  border-radius: 5px;
+}
+
+.ess-plugin__ro {
+  font-size: 10px;
+  color: var(--essensys-text-muted, #6b7280);
+  margin-left: auto;
+}
+
+.ess-plugin__metrics {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 18px;
+  margin: 12px 0 0;
+}
+
+.ess-plugin__metric dt {
+  font-size: 11px;
+  color: var(--essensys-text-muted, #6b7280);
+  font-weight: 600;
+}
+
+.ess-plugin__metric dd {
+  margin: 2px 0 0;
+  font-size: 18px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.ess-plugin--off {
+  color: var(--essensys-text-muted, #6b7280);
+}
+.ess-plugin--off p {
+  margin: 4px 0 0;
+  font-size: 12px;
+}

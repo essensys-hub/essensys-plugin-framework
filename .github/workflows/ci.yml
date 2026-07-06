@@ -1,0 +1,48 @@
+name: ci
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  go-sdk:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: go
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.24"
+      - run: go vet ./...
+      - run: go test ./...
+
+  ts-renderer:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ts
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm install
+      - run: npm run build
+      - run: npm test
+
+  gates:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Diff-guard legacy (bloquant)
+        run: bash scripts/diff_guard_legacy.sh .
+      - name: Valider les manifests d'exemple
+        run: |
+          shopt -s globstar nullglob
+          python3 scripts/validate_manifest.py examples/**/plugin.manifest.json || true
+      - name: Lint secrets (aucun secret en clair)
+        run: |
+          shopt -s globstar nullglob
+          python3 scripts/lint_secrets.py examples/**/plugin.manifest.json || true

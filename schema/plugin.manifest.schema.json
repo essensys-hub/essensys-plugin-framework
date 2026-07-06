@@ -1,0 +1,108 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://essensys-hub.github.io/essensys-plugin-framework/schema/plugin.manifest.schema.json",
+  "title": "Essensys Plugin Manifest",
+  "description": "Contrat déclaratif d'un plugin Essensys. Extension du schéma feature (features/schema/feature.schema.json).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "manifest_version", "framework_version", "capabilities", "perimeters", "surfaces", "visibility"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*[a-z0-9]$",
+      "description": "Identifiant kebab-case unique du plugin (ex. sungrow-solar)."
+    },
+    "name": { "type": "string", "description": "Nom lisible affiché à l'utilisateur." },
+    "manifest_version": { "type": "integer", "minimum": 1, "description": "Version du format de ce manifest." },
+    "framework_version": {
+      "type": "string",
+      "pattern": "^\\^?\\d+\\.\\d+(\\.\\d+)?$",
+      "description": "Version du framework requise (semver, ex. ^1.0)."
+    },
+    "capabilities": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "enum": ["metrics", "device-poll", "cloud-relay", "ui-tile", "ui-page", "settings"] },
+      "description": "Capacités déclarées par le plugin."
+    },
+    "perimeters": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "enum": ["lan-cm5", "hub-cloudsync", "armoire-wan"] },
+      "description": "Périmètres de déploiement supportés. Un plugin device-LAN exclut armoire-wan."
+    },
+    "surfaces": {
+      "type": "object",
+      "additionalProperties": false,
+      "minProperties": 1,
+      "properties": {
+        "collector": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["runtime", "runs_on"],
+          "properties": {
+            "runtime": { "type": "string", "enum": ["python", "go", "n8n", "external"] },
+            "runs_on": { "type": "string", "enum": ["cm5", "gateway", "cloud"] },
+            "heartbeat_seconds": { "type": "integer", "minimum": 5, "default": 30 }
+          }
+        },
+        "backend": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["adapter"],
+          "properties": {
+            "adapter": { "type": "string", "description": "Nom de l'adaptateur Go enregistré dans le registre compilé." }
+          }
+        },
+        "ui": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "tile": { "type": "boolean", "default": false },
+            "page": { "type": "boolean", "default": false },
+            "settings": { "type": "boolean", "default": false }
+          }
+        }
+      }
+    },
+    "visibility": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "enum": ["user", "admin_local", "admin_global", "lan_user", "lan_admin"] },
+      "description": "Rôles autorisés à voir/lire le plugin. Réutilise le RBAC existant."
+    },
+    "secrets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["key", "sops_ref"],
+        "properties": {
+          "key": { "type": "string" },
+          "sops_ref": { "type": "string", "description": "Référence SOPS (jamais le secret en clair)." }
+        }
+      },
+      "description": "Secrets référencés via SOPS uniquement."
+    },
+    "metrics": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "unit"],
+        "properties": {
+          "name": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
+          "label": { "type": "string" },
+          "unit": { "type": "string" },
+          "kind": { "type": "string", "enum": ["gauge", "counter"], "default": "gauge" }
+        }
+      }
+    },
+    "write_scope": {
+      "type": "string",
+      "enum": ["read-only"],
+      "default": "read-only",
+      "description": "MVP: lecture seule. Aucune mutation armoire autorisée."
+    }
+  }
+}

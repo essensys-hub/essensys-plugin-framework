@@ -1,0 +1,28 @@
+{
+  "name": "@essensys/plugin-renderer",
+  "version": "1.0.0",
+  "description": "Renderer générique server-driven du framework de plugins Essensys, partagé par les frontends jumeaux.",
+  "license": "UNLICENSED",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": ["dist", "src"],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "e2e": "playwright test"
+  },
+  "peerDependencies": {
+    "react": ">=18"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.48.0",
+    "@testing-library/react": "^16.0.0",
+    "@types/react": "^18.3.0",
+    "jsdom": "^25.0.0",
+    "react": "^18.3.0",
+    "react-dom": "^18.3.0",
+    "typescript": "^5.6.0",
+    "vitest": "^2.1.0"
+  }
+}
