@@ -1,5 +1,5 @@
 // Client de l'API moderne /api/plugins/*. Lecture seule via guardedFetch.
-import { Descriptor, Reading } from "./descriptor";
+import type { Descriptor, Reading } from "./descriptor";
 import { guardedFetch } from "./noArmoire";
 
 export interface PluginClientOptions {
@@ -14,7 +14,8 @@ export class PluginClient {
   }
 
   private async get<T>(path: string): Promise<T> {
-    const res = await guardedFetch(`${this.base}${path}`, { method: "GET" });
+    // credentials: include -> envoie le cookie de session (auth LAN/portail).
+    const res = await guardedFetch(`${this.base}${path}`, { method: "GET", credentials: "include" });
     if (!res.ok) throw new Error(`${path} → HTTP ${res.status}`);
     return (await res.json()) as T;
   }

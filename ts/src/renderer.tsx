@@ -2,7 +2,8 @@
 // essensys-server-frontend et essensys-user-portal-frontend (jumeaux).
 // Aucun composant spécifique à un plugin : tout vient du descripteur.
 import React from "react";
-import { Descriptor, Reading, MetricDisplay, TONE_VAR } from "./descriptor";
+import { TONE_VAR } from "./descriptor";
+import type { Descriptor, Reading, MetricDisplay } from "./descriptor";
 
 export interface RenderProps {
   descriptor: Descriptor;
