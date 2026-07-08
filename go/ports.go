@@ -63,7 +63,33 @@ func NewMemStore(staleAfter time.Duration) *MemStore {
 func (s *MemStore) Put(pluginID, machineID string, samples []Sample, at time.Time) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	s.readings[pluginID] = &Reading{PluginID: pluginID, Samples: samples, UpdatedAt: at}
+	var base []Sample
+	if prev, ok := s.readings[pluginID]; ok {
+		base = prev.Samples
+	}
+	s.readings[pluginID] = &Reading{PluginID: pluginID, Samples: MergeSamples(base, samples), UpdatedAt: at}
+}
+
+// MergeSamples fusionne des échantillons entrants dans un snapshot existant,
+// avec upsert par clé de série (machine_id|metric) : un message MQTT ne porte
+// qu'une série, le snapshot courant doit conserver les autres.
+func MergeSamples(existing, incoming []Sample) []Sample {
+	idx := make(map[string]int, len(existing))
+	out := make([]Sample, len(existing))
+	copy(out, existing)
+	for i, s := range out {
+		idx[s.MachineID+"|"+s.Metric] = i
+	}
+	for _, s := range incoming {
+		key := s.MachineID + "|" + s.Metric
+		if i, ok := idx[key]; ok {
+			out[i] = s
+		} else {
+			idx[key] = len(out)
+			out = append(out, s)
+		}
+	}
+	return out
 }
 
 func (s *MemStore) Current(pluginID string) Reading {
