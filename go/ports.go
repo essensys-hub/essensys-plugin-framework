@@ -51,6 +51,7 @@ type Identity struct {
 type MemStore struct {
 	mu       sync.RWMutex
 	readings map[string]*Reading
+	history  map[string][]Point // clé = pluginID|metric
 	deadline time.Duration
 	now      func() time.Time
 }
@@ -68,6 +69,30 @@ func (s *MemStore) Put(pluginID, machineID string, samples []Sample, at time.Tim
 		base = prev.Samples
 	}
 	s.readings[pluginID] = &Reading{PluginID: pluginID, Samples: MergeSamples(base, samples), UpdatedAt: at}
+	if s.history == nil {
+		s.history = map[string][]Point{}
+	}
+	for _, sm := range samples {
+		k := pluginID + "|" + sm.Metric
+		ts := sm.TS
+		if ts.IsZero() {
+			ts = at
+		}
+		s.history[k] = append(s.history[k], Point{TS: ts, Value: sm.Value})
+	}
+}
+
+// History renvoie la série d'une métrique depuis since (implémente HistoryProvider).
+func (s *MemStore) History(pluginID, metric string, since time.Time) []Point {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	var out []Point
+	for _, p := range s.history[pluginID+"|"+metric] {
+		if !p.TS.Before(since) {
+			out = append(out, p)
+		}
+	}
+	return out
 }
 
 // MergeSamples fusionne des échantillons entrants dans un snapshot existant,

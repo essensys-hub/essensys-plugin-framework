@@ -77,3 +77,210 @@
   margin: 4px 0 0;
   font-size: 12px;
 }
+
+/* ---------- Dashboard riche (descriptor.dashboard) ---------- */
+
+.ess-dash {
+  margin-top: 12px;
+  --ess-track: var(--essensys-track, #eef1f5);
+  --ess-grid-line: var(--essensys-grid-line, #eceef1);
+}
+
+.ess-dash__cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+@media (max-width: 780px) {
+  .ess-dash__cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.ess-kpi {
+  background: var(--essensys-bg-card, #fff);
+  border: 1px solid var(--essensys-border, #e2e8f0);
+  border-radius: 16px;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05), 0 8px 24px -12px rgba(16, 24, 40, 0.12);
+  padding: 16px 17px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ess-kpi__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ess-kpi__label {
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--essensys-text-faint, #9ca3af);
+}
+
+.ess-kpi__chip {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  flex: none;
+}
+
+.ess-kpi__value {
+  font-size: 27px;
+  font-weight: 750;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.ess-kpi__value small {
+  font-size: 13px;
+  color: var(--essensys-text-muted, #6b7280);
+  font-weight: 600;
+  margin-left: 3px;
+}
+
+.ess-kpi__sub {
+  font-size: 12px;
+  color: var(--essensys-text-muted, #6b7280);
+  min-height: 15px;
+}
+.ess-kpi__sub b {
+  font-variant-numeric: tabular-nums;
+}
+
+.ess-dash__lower {
+  display: grid;
+  grid-template-columns: 1.05fr 1.6fr;
+  gap: 14px;
+  margin-top: 14px;
+}
+@media (max-width: 860px) {
+  .ess-dash__lower {
+    grid-template-columns: 1fr;
+  }
+}
+
+.ess-panel-hd {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 15px 18px 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+.ess-panel-hd h4 {
+  margin: 0;
+  font-size: 14.5px;
+  letter-spacing: -0.01em;
+}
+
+.ess-gauge,
+.ess-chart {
+  background: var(--essensys-bg-card, #fff);
+  border: 1px solid var(--essensys-border, #e2e8f0);
+  border-radius: 16px;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05), 0 8px 24px -12px rgba(16, 24, 40, 0.12);
+}
+
+.ess-gauge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-bottom: 20px;
+}
+
+.ess-gauge__wrap {
+  position: relative;
+  width: 210px;
+  max-width: 66%;
+  margin: 6px auto 2px;
+}
+.ess-gauge__wrap svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.ess-gauge__center {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  text-align: center;
+}
+.ess-gauge__val {
+  font-size: 34px;
+  font-weight: 780;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+.ess-gauge__lab {
+  font-size: 11px;
+  color: var(--essensys-text-muted, #6b7280);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 700;
+}
+
+.ess-gauge__legend {
+  display: flex;
+  gap: 18px;
+  margin-top: 4px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.ess-gauge__legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  color: var(--essensys-text-muted, #6b7280);
+  font-weight: 600;
+}
+.ess-gauge__legend i {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.ess-chart {
+  padding-bottom: 10px;
+}
+.ess-chart svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.ess-chart__empty {
+  margin: 24px 18px;
+  font-size: 13px;
+  color: var(--essensys-text-muted, #6b7280);
+}
+
+.ess-chart__meta {
+  display: flex;
+  gap: 22px;
+  padding: 0 18px 14px;
+  flex-wrap: wrap;
+}
+.ess-chart__stat-v {
+  font-size: 19px;
+  font-weight: 720;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+.ess-chart__stat-v small {
+  font-size: 12px;
+  color: var(--essensys-text-muted, #6b7280);
+}
+.ess-chart__stat-l {
+  font-size: 11.5px;
+  color: var(--essensys-text-muted, #6b7280);
+}

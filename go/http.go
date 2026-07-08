@@ -3,7 +3,9 @@ package plugin
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 	"strings"
+	"time"
 )
 
 // AuthFunc extrait l'identité d'une requête HTTP. Fournie par l'application
@@ -35,6 +37,26 @@ func (r *Registry) Mount(mux *http.ServeMux, auth AuthFunc) {
 			writeJSON(w, r.descriptor(id))
 		case "current":
 			writeJSON(w, r.store.Current(id))
+		case "history":
+			hp, isHist := r.store.(HistoryProvider)
+			if !isHist {
+				http.NotFound(w, req)
+				return
+			}
+			metric := req.URL.Query().Get("metric")
+			if metric == "" {
+				http.Error(w, "metric requis", http.StatusBadRequest)
+				return
+			}
+			hours := 24
+			if h, err := strconv.Atoi(req.URL.Query().Get("hours")); err == nil && h > 0 && h <= 48 {
+				hours = h
+			}
+			pts := hp.History(id, metric, time.Now().Add(-time.Duration(hours)*time.Hour))
+			if pts == nil {
+				pts = []Point{}
+			}
+			writeJSON(w, map[string]any{"metric": metric, "points": pts})
 		default:
 			http.NotFound(w, req)
 		}

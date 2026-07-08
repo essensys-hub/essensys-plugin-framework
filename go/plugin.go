@@ -44,12 +44,84 @@ type Sample struct {
 // Descriptor est la description server-driven de l'UI d'un plugin. Les deux
 // frontends jumeaux rendent ce descripteur avec le même renderer générique.
 type Descriptor struct {
-	PluginID string          `json:"plugin_id"`
-	Title    string          `json:"title"`
-	Tile     *TileSpec       `json:"tile,omitempty"`
-	Page     *PageSpec       `json:"page,omitempty"`
-	Metrics  []MetricDisplay `json:"metrics"`
-	ReadOnly bool            `json:"read_only"`
+	PluginID  string          `json:"plugin_id"`
+	Title     string          `json:"title"`
+	Tile      *TileSpec       `json:"tile,omitempty"`
+	Page      *PageSpec       `json:"page,omitempty"`
+	Dashboard *DashboardSpec  `json:"dashboard,omitempty"`
+	Metrics   []MetricDisplay `json:"metrics"`
+	ReadOnly  bool            `json:"read_only"`
+}
+
+// DashboardSpec décrit le tableau de bord riche d'un plugin (cartes KPI,
+// jauge de ratio, courbe du jour). Entièrement server-driven : le renderer
+// générique ne connaît aucun plugin.
+type DashboardSpec struct {
+	Cards []CardSpec `json:"cards,omitempty"`
+	Gauge *GaugeSpec `json:"gauge,omitempty"`
+	Chart *ChartSpec `json:"chart,omitempty"`
+}
+
+// CardSpec est une carte KPI : valeur principale + sous-ligne.
+type CardSpec struct {
+	Label   string   `json:"label"`
+	Icon    string   `json:"icon,omitempty"` // "sun" | "home" | "arrow-up" | "battery"
+	Tone    string   `json:"tone,omitempty"` // teinte de la pastille ; la valeur suit ValueTone
+	ValueTone string `json:"value_tone,omitempty"`
+	Metric  string   `json:"metric"`             // valeur principale
+	Sub     []SubRef `json:"sub,omitempty"`      // sous-ligne "label valeur"
+	SubText string   `json:"sub_text,omitempty"` // sous-ligne statique sinon
+}
+
+// SubRef référence une métrique affichée en sous-ligne d'une carte.
+type SubRef struct {
+	Label  string `json:"label,omitempty"`
+	Metric string `json:"metric"`
+}
+
+// GaugeSpec est une jauge circulaire de ratio entre deux métriques du
+// snapshot. pourcent = numerator/denominator borné 0..100 ; Invert affiche
+// 1-ratio (ex. autoconsommation = 1 - injecté_du_jour/produit_du_jour).
+type GaugeSpec struct {
+	Title       string `json:"title"`
+	Numerator   string `json:"numerator"`
+	Denominator string `json:"denominator"`
+	Invert      bool   `json:"invert,omitempty"`
+	Label       string `json:"label,omitempty"`    // libellé sous la valeur
+	LegendA     string `json:"legend_a,omitempty"` // part affichée
+	LegendB     string `json:"legend_b,omitempty"` // part complémentaire
+	Tone        string `json:"tone,omitempty"`
+}
+
+// ChartSpec est la courbe du jour d'une métrique (source: route history).
+type ChartSpec struct {
+	Title  string    `json:"title"`
+	Metric string    `json:"metric"`
+	Unit   string    `json:"unit,omitempty"`
+	Tone   string    `json:"tone,omitempty"`
+	Stats  []StatRef `json:"stats,omitempty"` // méta sous la courbe
+}
+
+// StatRef est une statistique affichée sous la courbe. Si Peak est vrai, le
+// renderer calcule le pic de la série (valeur + heure) au lieu de lire une
+// métrique du snapshot.
+type StatRef struct {
+	Label  string `json:"label"`
+	Metric string `json:"metric,omitempty"`
+	Peak   bool   `json:"peak,omitempty"`
+	Tone   string `json:"tone,omitempty"`
+}
+
+// Point est un échantillon historisé (courbes).
+type Point struct {
+	TS    time.Time `json:"ts"`
+	Value float64   `json:"value"`
+}
+
+// HistoryProvider est un port optionnel du Store : s'il est implémenté, la
+// route /api/plugins/<id>/history est exposée pour alimenter les courbes.
+type HistoryProvider interface {
+	History(pluginID, metric string, since time.Time) []Point
 }
 
 // MetricDisplay décrit comment afficher une métrique (label, unité, couleur sémantique).

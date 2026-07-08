@@ -21,13 +21,77 @@ export interface PageSpec {
   chart: "flow" | "area" | "gauge";
 }
 
+/** Sous-ligne d'une carte KPI : "label valeur unité". */
+export interface SubRef {
+  label?: string;
+  metric: string;
+}
+
+/** Carte KPI du tableau de bord. */
+export interface CardSpec {
+  label: string;
+  icon?: string; // "sun" | "home" | "arrow-up" | "battery"
+  tone?: Tone;
+  value_tone?: Tone;
+  metric: string;
+  sub?: SubRef[];
+  sub_text?: string;
+}
+
+/** Jauge circulaire de ratio (ex. autoconsommation). */
+export interface GaugeSpec {
+  title: string;
+  numerator: string;
+  denominator: string;
+  invert?: boolean;
+  label?: string;
+  legend_a?: string;
+  legend_b?: string;
+  tone?: Tone;
+}
+
+export interface StatRef {
+  label: string;
+  metric?: string;
+  peak?: boolean;
+  tone?: Tone;
+}
+
+/** Courbe du jour d'une métrique (route history). */
+export interface ChartSpec {
+  title: string;
+  metric: string;
+  unit?: string;
+  tone?: Tone;
+  stats?: StatRef[];
+}
+
+/** Tableau de bord riche server-driven (cartes, jauge, courbe). */
+export interface DashboardSpec {
+  cards?: CardSpec[];
+  gauge?: GaugeSpec;
+  chart?: ChartSpec;
+}
+
 export interface Descriptor {
   plugin_id: string;
   title: string;
   tile?: TileSpec;
   page?: PageSpec;
+  dashboard?: DashboardSpec;
   metrics: MetricDisplay[];
   read_only: boolean;
+}
+
+/** Point historisé pour les courbes. */
+export interface Point {
+  ts: string;
+  value: number;
+}
+
+export interface History {
+  metric: string;
+  points: Point[];
 }
 
 export interface Sample {

@@ -1,5 +1,5 @@
 // Client de l'API moderne /api/plugins/*. Lecture seule via guardedFetch.
-import type { Descriptor, Reading } from "./descriptor";
+import type { Descriptor, History, Reading } from "./descriptor";
 import { guardedFetch } from "./noArmoire";
 
 export interface PluginClientOptions {
@@ -26,5 +26,12 @@ export class PluginClient {
 
   current(pluginId: string): Promise<Reading> {
     return this.get<Reading>(`/api/plugins/${pluginId}/current`);
+  }
+
+  /** Série historisée d'une métrique (48 h max) pour les courbes. */
+  history(pluginId: string, metric: string, hours = 24): Promise<History> {
+    return this.get<History>(
+      `/api/plugins/${pluginId}/history?metric=${encodeURIComponent(metric)}&hours=${hours}`,
+    );
   }
 }
