@@ -20,6 +20,8 @@ type SecretRef struct {
 type Manifest struct {
 	ID               string      `json:"id"`
 	Name             string      `json:"name"`
+	Version          string      `json:"version,omitempty"`     // version du plugin (release)
+	Description      string      `json:"description,omitempty"` // une phrase pour l'écran Paramètres
 	ManifestVersion  int         `json:"manifest_version"`
 	FrameworkVersion string      `json:"framework_version"`
 	Capabilities     []string    `json:"capabilities"`

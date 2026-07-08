@@ -1,5 +1,5 @@
 // Client de l'API moderne /api/plugins/*. Lecture seule via guardedFetch.
-import type { Descriptor, History, Reading } from "./descriptor";
+import type { Descriptor, History, PluginInfo, Reading } from "./descriptor";
 import { guardedFetch } from "./noArmoire";
 
 export interface PluginClientOptions {
@@ -33,5 +33,31 @@ export class PluginClient {
     return this.get<History>(
       `/api/plugins/${pluginId}/history?metric=${encodeURIComponent(metric)}&hours=${hours}`,
     );
+  }
+
+  private async post<T>(path: string): Promise<T> {
+    const res = await guardedFetch(`${this.base}${path}`, { method: "POST", credentials: "include" });
+    if (!res.ok) throw new Error(`${path} → HTTP ${res.status}`);
+    return (await res.json()) as T;
+  }
+
+  /** Catalogue des plugins compilés (écran Paramètres). */
+  list(): Promise<PluginInfo[]> {
+    return this.get<PluginInfo[]>(`/api/plugins/`);
+  }
+
+  /** Active un plugin (admin). Renvoie le catalogue à jour. */
+  enable(pluginId: string): Promise<PluginInfo[]> {
+    return this.post<PluginInfo[]>(`/api/plugins/${pluginId}/enable`);
+  }
+
+  /** Désactive un plugin (admin), données conservées. */
+  disable(pluginId: string): Promise<PluginInfo[]> {
+    return this.post<PluginInfo[]>(`/api/plugins/${pluginId}/disable`);
+  }
+
+  /** Désinstalle : désactive et efface snapshot + historique (admin). */
+  purge(pluginId: string): Promise<PluginInfo[]> {
+    return this.post<PluginInfo[]>(`/api/plugins/${pluginId}/purge`);
   }
 }

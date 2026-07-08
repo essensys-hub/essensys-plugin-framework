@@ -101,6 +101,17 @@ export interface Point {
   value: number;
 }
 
+/** Entrée du catalogue de plugins (écran Paramètres). */
+export interface PluginInfo {
+  id: string;
+  name: string;
+  version?: string;
+  description?: string;
+  enabled: boolean;
+  write_scope?: string;
+  capabilities?: string[];
+}
+
 export interface History {
   metric: string;
   points: Point[];

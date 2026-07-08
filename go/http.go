@@ -13,22 +13,81 @@ import (
 // trusted-devices LAN). Le framework n'invente aucun schéma d'autorisation.
 type AuthFunc func(*http.Request) (Identity, bool)
 
-// Mount enregistre les routes /api/plugins/<id>/{descriptor,current} sur mux.
-// Chaque route applique le RBAC déclaratif du manifest via auth.
+// IsAdmin indique si l'identité porte un rôle d'administration.
+func (i Identity) IsAdmin() bool {
+	for _, r := range i.Roles {
+		if r == RoleAdminLocal || r == RoleAdminGlobal || r == RoleLANAdmin {
+			return true
+		}
+	}
+	return false
+}
+
+// Mount enregistre les routes /api/plugins/* sur mux :
+//   - GET  /api/plugins/                    catalogue (écran Paramètres)
+//   - GET  /api/plugins/<id>/descriptor|current|history
+//   - POST /api/plugins/<id>/enable|disable|purge   (admin uniquement)
+//
+// Chaque route de lecture applique le RBAC déclaratif du manifest via auth.
 func (r *Registry) Mount(mux *http.ServeMux, auth AuthFunc) {
 	mux.HandleFunc("/api/plugins/", func(w http.ResponseWriter, req *http.Request) {
+		ident, authed := auth(req)
+		if !authed {
+			http.Error(w, "forbidden", http.StatusForbidden)
+			return
+		}
+
+		// Catalogue : GET /api/plugins/
+		if strings.Trim(strings.TrimPrefix(req.URL.Path, "/api/plugins"), "/") == "" {
+			if req.Method != http.MethodGet {
+				http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+				return
+			}
+			writeJSON(w, r.List())
+			return
+		}
+
 		id, action, ok := parsePath(req.URL.Path)
 		if !ok {
 			http.NotFound(w, req)
 			return
 		}
+
+		// Actions d'administration (plugin désactivé inclus).
+		switch action {
+		case "enable", "disable", "purge":
+			if req.Method != http.MethodPost {
+				http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+				return
+			}
+			if !ident.IsAdmin() {
+				http.Error(w, "forbidden", http.StatusForbidden)
+				return
+			}
+			switch action {
+			case "enable":
+				if err := r.Enable(id); err != nil {
+					http.Error(w, err.Error(), http.StatusNotFound)
+					return
+				}
+			case "disable":
+				r.Disable(id)
+			case "purge":
+				r.Disable(id)
+				if ps, isPurge := r.store.(PurgeStore); isPurge {
+					ps.Purge(id)
+				}
+			}
+			writeJSON(w, r.List())
+			return
+		}
+
 		m, active := r.manifest(id)
 		if !active {
 			http.NotFound(w, req)
 			return
 		}
-		ident, authed := auth(req)
-		if !authed || !m.Allows(ident.Roles) {
+		if !m.Allows(ident.Roles) {
 			http.Error(w, "forbidden", http.StatusForbidden)
 			return
 		}

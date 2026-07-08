@@ -380,3 +380,119 @@
   border-radius: 2px;
   display: inline-block;
 }
+
+/* ---------- Gestionnaire de plugins (Paramètres) ---------- */
+
+.ess-pm__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.ess-pm__item {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  background: var(--essensys-bg-card, #fff);
+  border: 1px solid var(--essensys-border, #e2e8f0);
+  border-radius: 12px;
+  padding: 13px 15px;
+}
+.ess-pm__name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 14px;
+  flex-wrap: wrap;
+}
+.ess-pm__version {
+  font-size: 11px;
+  font-weight: 650;
+  color: var(--essensys-text-muted, #6b7280);
+  background: var(--essensys-bg-page, #f3f4f6);
+  border: 1px solid var(--essensys-border, #e2e8f0);
+  padding: 1px 7px;
+  border-radius: 999px;
+}
+.ess-pm__badge {
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 2px 8px;
+  border-radius: 999px;
+  color: var(--essensys-text-muted, #6b7280);
+  background: color-mix(in srgb, var(--essensys-text-muted, #6b7280) 12%, transparent);
+}
+.ess-pm__badge--on {
+  color: var(--essensys-success, #16a34a);
+  background: color-mix(in srgb, var(--essensys-success, #16a34a) 14%, transparent);
+}
+.ess-pm__ro {
+  font-size: 10.5px;
+  color: var(--essensys-text-faint, #9ca3af);
+}
+.ess-pm__desc {
+  margin: 4px 0 0;
+  font-size: 12.5px;
+  color: var(--essensys-text-muted, #6b7280);
+  max-width: 60ch;
+}
+.ess-pm__meta {
+  margin: 4px 0 0;
+  font-size: 11px;
+  color: var(--essensys-text-faint, #9ca3af);
+}
+.ess-pm__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.ess-pm__actions button {
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 650;
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--essensys-border, #e2e8f0);
+  background: var(--essensys-bg-card, #fff);
+  color: var(--essensys-text-main, #111827);
+  cursor: pointer;
+  transition: 0.15s;
+}
+.ess-pm__actions button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.ess-pm__actions .ess-pm__primary {
+  background: var(--essensys-primary, #2563eb);
+  border-color: var(--essensys-primary, #2563eb);
+  color: #fff;
+}
+.ess-pm__actions .ess-pm__danger {
+  color: var(--essensys-danger, #dc2626);
+  border-color: color-mix(in srgb, var(--essensys-danger, #dc2626) 35%, var(--essensys-border, #e2e8f0));
+}
+.ess-pm__confirm {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--essensys-text-muted, #6b7280);
+}
+.ess-pm__note {
+  margin: 12px 2px 0;
+  font-size: 12px;
+  color: var(--essensys-text-muted, #6b7280);
+}
+.ess-pm__error {
+  margin: 0 0 10px;
+  font-size: 12.5px;
+  color: var(--essensys-danger, #dc2626);
+}
