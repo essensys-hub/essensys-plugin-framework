@@ -66,11 +66,23 @@ export interface ChartSpec {
   stats?: StatRef[];
 }
 
-/** Tableau de bord riche server-driven (cartes, jauge, courbe). */
+/** Schéma de flux d'énergie (PV / maison / batterie / réseau). */
+export interface FlowSpec {
+  pv: string;
+  load: string;
+  grid_import?: string;
+  grid_export?: string;
+  battery_charge?: string;
+  battery_discharge?: string;
+  battery_soc?: string;
+}
+
+/** Tableau de bord riche server-driven (cartes, jauge, courbe, flux). */
 export interface DashboardSpec {
   cards?: CardSpec[];
   gauge?: GaugeSpec;
   chart?: ChartSpec;
+  flow?: FlowSpec;
 }
 
 export interface Descriptor {

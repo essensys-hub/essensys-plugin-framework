@@ -6,6 +6,7 @@ import { TONE_VAR } from "./descriptor";
 import type {
   CardSpec,
   Descriptor,
+  FlowSpec,
   GaugeSpec,
   ChartSpec,
   MetricDisplay,
@@ -317,6 +318,199 @@ function ChartCard({
   );
 }
 
+/** Valeur numérique d'une métrique du snapshot (0 si absente). */
+function metricNum(reading: Reading | undefined, metric?: string): number {
+  if (!metric) return 0;
+  return findSample(reading, metric)?.value ?? 0;
+}
+
+const FLOW_EPS = 0.05; // kW : en-dessous, le lien est considéré inactif
+
+function FlowLink({
+  d,
+  color,
+  active,
+  reverse,
+}: {
+  d: string;
+  color: string;
+  active: boolean;
+  reverse?: boolean;
+}): React.JSX.Element {
+  return (
+    <>
+      <path d={d} fill="none" stroke="var(--ess-track, #eef1f5)" strokeWidth="6" strokeLinecap="round" />
+      {active && (
+        <path
+          d={d}
+          fill="none"
+          stroke={color}
+          strokeWidth="4"
+          strokeLinecap="round"
+          className={reverse ? "ess-flow__dash ess-flow__dash--rev" : "ess-flow__dash"}
+        />
+      )}
+    </>
+  );
+}
+
+function FlowValue({ x, y, v }: { x: number; y: number; v: number }): React.JSX.Element | null {
+  if (v <= FLOW_EPS) return null;
+  return (
+    <text x={x} y={y} fontSize="15" fontWeight="700" fill="var(--essensys-text-main, #111827)">
+      {fmt(v)}
+      <tspan fontSize="11" fill="var(--essensys-text-muted, #6b7280)">
+        {" "}
+        kW
+      </tspan>
+    </text>
+  );
+}
+
+/** Schéma de flux d'énergie : PV / maison / batterie / réseau (maquette vue 1). */
+function FlowCard({ flow, reading }: { flow: FlowSpec; reading?: Reading }): React.JSX.Element {
+  const pv = metricNum(reading, flow.pv);
+  const load = metricNum(reading, flow.load);
+  const gridIn = metricNum(reading, flow.grid_import);
+  const gridOut = metricNum(reading, flow.grid_export);
+  const battIn = metricNum(reading, flow.battery_charge);
+  const battOut = metricNum(reading, flow.battery_discharge);
+  const soc = flow.battery_soc ? findSample(reading, flow.battery_soc)?.value : undefined;
+
+  const solar = toneColor("solar");
+  const primary = toneColor("grid");
+  const success = toneColor("battery");
+  const text = "var(--essensys-text-main, #111827)";
+  const muted = "var(--essensys-text-muted, #6b7280)";
+  const faint = "var(--essensys-text-faint, #9ca3af)";
+  const nodeBg = "var(--essensys-bg-card, #fff)";
+  const nodeRing = "var(--essensys-border, #e2e8f0)";
+
+  const pvToHouse = Math.min(pv, load);
+  const battLabel =
+    battOut > FLOW_EPS ? `décharge ${fmt(battOut)} kW` : battIn > FLOW_EPS ? `charge ${fmt(battIn)} kW` : "0 W";
+  const gridLabel = gridOut > FLOW_EPS ? "RÉSEAU · INJECTION" : gridIn > FLOW_EPS ? "RÉSEAU · SOUTIRAGE" : "RÉSEAU";
+  const gridValue = gridOut > FLOW_EPS ? gridOut : gridIn;
+
+  return (
+    <div className="ess-flow">
+      <svg viewBox="0 0 640 420" role="img" aria-label="Schéma de flux d'énergie">
+        <defs>
+          <filter id="ess-flow-soft" x="-20%" y="-20%" width="140%" height="140%">
+            <feDropShadow dx="0" dy="6" stdDeviation="7" floodColor="#0b1220" floodOpacity="0.10" />
+          </filter>
+        </defs>
+
+        {/* PV -> Maison */}
+        <FlowLink d="M320 150 L320 250" color={solar} active={pvToHouse > FLOW_EPS} />
+        <FlowValue x={332} y={205} v={pvToHouse} />
+        {/* PV -> Réseau (injection) */}
+        <FlowLink d="M392 118 H520 V288" color={success} active={gridOut > FLOW_EPS} />
+        {gridOut > FLOW_EPS && <FlowValue x={430} y={106} v={gridOut} />}
+        {/* Batterie <-> Maison */}
+        <FlowLink
+          d="M214 331 H256"
+          color={success}
+          active={battOut > FLOW_EPS || battIn > FLOW_EPS}
+          reverse={battIn > FLOW_EPS && battOut <= FLOW_EPS}
+        />
+        {/* Réseau -> Maison (soutirage) */}
+        <FlowLink d="M456 331 H384" color={primary} active={gridIn > FLOW_EPS} />
+        {gridIn > FLOW_EPS && <FlowValue x={396} y={318} v={gridIn} />}
+
+        {/* Nœud PV */}
+        <g filter="url(#ess-flow-soft)">
+          <rect x="256" y="70" width="128" height="80" rx="16" fill={nodeBg} stroke={nodeRing} />
+        </g>
+        <g transform="translate(276,86)">
+          <rect x="0" y="0" width="48" height="34" rx="4" fill="none" stroke={solar} strokeWidth="2.4" />
+          <path d="M12 0v34M24 0v34M36 0v34M0 11.3h48M0 22.6h48" stroke={solar} strokeWidth="1.6" opacity=".75" />
+        </g>
+        <text x="332" y="100" fontSize="20" fontWeight="750" fill={text} letterSpacing="-.5">
+          {fmt(pv)}
+          <tspan fontSize="12" fill={muted} fontWeight="650">
+            {" "}
+            kW
+          </tspan>
+        </text>
+        <text x="332" y="122" fontSize="11" fill={faint} fontWeight="700" letterSpacing=".5">
+          PANNEAUX PV
+        </text>
+
+        {/* Nœud Maison */}
+        <g filter="url(#ess-flow-soft)">
+          <rect x="256" y="250" width="128" height="86" rx="16" fill={nodeBg} stroke={nodeRing} />
+        </g>
+        <g transform="translate(276,268)" stroke={primary} strokeWidth="2.4" fill="none" strokeLinejoin="round">
+          <path d="M4 20 L20 6 L36 20" />
+          <path d="M8 18v14h24V18" />
+          <rect x="16" y="22" width="8" height="10" fill="color-mix(in srgb, currentColor 12%, transparent)" />
+        </g>
+        <text x="332" y="292" fontSize="20" fontWeight="750" fill={text} letterSpacing="-.5">
+          {fmt(load)}
+          <tspan fontSize="12" fill={muted} fontWeight="650">
+            {" "}
+            kW
+          </tspan>
+        </text>
+        <text x="332" y="314" fontSize="11" fill={faint} fontWeight="700" letterSpacing=".5">
+          MAISON
+        </text>
+
+        {/* Nœud Batterie */}
+        <g filter="url(#ess-flow-soft)">
+          <rect x="86" y="288" width="128" height="86" rx="16" fill={nodeBg} stroke={nodeRing} />
+        </g>
+        <g transform="translate(104,306)" stroke={success} strokeWidth="2.4" fill="none">
+          <rect x="4" y="2" width="30" height="34" rx="4" />
+          <path d="M14 0h10" strokeLinecap="round" />
+          <rect x="8" y="24" width="22" height="8" fill={success} stroke="none" />
+          {soc !== undefined && soc > 40 && <rect x="8" y="14" width="22" height="7" fill={success} opacity=".55" stroke="none" />}
+        </g>
+        <text x="150" y="330" fontSize="20" fontWeight="750" fill={text} letterSpacing="-.5">
+          {soc === undefined ? "—" : fmt(soc, 1)}
+          <tspan fontSize="12" fill={muted} fontWeight="650">
+            {" "}
+            %
+          </tspan>
+        </text>
+        <text x="150" y="352" fontSize="11" fill={faint} fontWeight="700" letterSpacing=".5">
+          BATTERIE · {battLabel}
+        </text>
+
+        {/* Nœud Réseau */}
+        <g filter="url(#ess-flow-soft)">
+          <rect x="456" y="288" width="128" height="86" rx="16" fill={nodeBg} stroke={nodeRing} />
+        </g>
+        <g transform="translate(486,306)" stroke={primary} strokeWidth="2.2" fill="none" strokeLinecap="round">
+          <path d="M14 0 L4 34 M14 0 L24 34 M7 12 H21 M6 20 H22 M2 34 H26" />
+        </g>
+        <text x="520" y="330" fontSize="20" fontWeight="750" fill={text} letterSpacing="-.5">
+          {fmt(gridValue)}
+          <tspan fontSize="12" fill={muted} fontWeight="650">
+            {" "}
+            kW
+          </tspan>
+        </text>
+        <text x="520" y="352" fontSize="11" fill={faint} fontWeight="700" letterSpacing=".5">
+          {gridLabel}
+        </text>
+      </svg>
+      <div className="ess-flow__legend">
+        <span>
+          <i style={{ background: solar }} /> Production
+        </span>
+        <span>
+          <i style={{ background: primary }} /> Consommation
+        </span>
+        <span>
+          <i style={{ background: success }} /> Injection
+        </span>
+      </div>
+    </div>
+  );
+}
+
 /** Tableau de bord riche décrit par descriptor.dashboard. */
 function PluginDashboard({ descriptor, reading, history }: RenderProps): React.JSX.Element {
   const dash = descriptor.dashboard!;
@@ -341,18 +535,71 @@ function PluginDashboard({ descriptor, reading, history }: RenderProps): React.J
   );
 }
 
+type PanelView = "dash" | "flow";
+
+function initialView(pluginId: string): PanelView {
+  try {
+    return window.localStorage.getItem(`ess-plugin-view-${pluginId}`) === "flow" ? "flow" : "dash";
+  } catch {
+    return "dash";
+  }
+}
+
 /** Page/panneau détail : dashboard riche si déclaré, sinon liste des métriques. */
 export function PluginPanel({ descriptor, reading, history, available = true }: RenderProps): React.JSX.Element {
+  const [view, setView] = React.useState<PanelView>(() => initialView(descriptor.plugin_id));
+  const dash = descriptor.dashboard;
+  const hasFlow = Boolean(dash?.flow);
+  const hasDash = Boolean(dash?.cards?.length || dash?.gauge || dash?.chart);
+
+  const switchView = (v: PanelView) => {
+    setView(v);
+    try {
+      window.localStorage.setItem(`ess-plugin-view-${descriptor.plugin_id}`, v);
+    } catch {
+      /* stockage indisponible : la préférence ne survit pas au rechargement */
+    }
+  };
+
   if (!available) return <Unavailable title={descriptor.title} />;
+  const showFlow = hasFlow && (view === "flow" || !hasDash);
   return (
     <section className="ess-plugin ess-plugin--panel" data-plugin={descriptor.plugin_id}>
       <header>
         <h3>{descriptor.title}</h3>
         {reading?.stale && <StaleBadge />}
+        {hasFlow && hasDash && (
+          <div className="ess-plugin__views" role="tablist" aria-label="Vue du plugin">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={!showFlow}
+              className={showFlow ? "" : "is-active"}
+              onClick={() => switchView("dash")}
+            >
+              Tableau
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={showFlow}
+              className={showFlow ? "is-active" : ""}
+              onClick={() => switchView("flow")}
+            >
+              Schéma
+            </button>
+          </div>
+        )}
         {descriptor.read_only && <span className="ess-plugin__ro">lecture seule</span>}
       </header>
-      {descriptor.dashboard ? (
-        <PluginDashboard descriptor={descriptor} reading={reading} history={history} />
+      {dash ? (
+        showFlow && dash.flow ? (
+          <div className="ess-dash">
+            <FlowCard flow={dash.flow} reading={reading} />
+          </div>
+        ) : (
+          <PluginDashboard descriptor={descriptor} reading={reading} history={history} />
+        )
       ) : (
         <dl className="ess-plugin__metrics">
           {descriptor.metrics.map((m: MetricDisplay) => (

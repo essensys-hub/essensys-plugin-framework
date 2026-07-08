@@ -54,12 +54,26 @@ type Descriptor struct {
 }
 
 // DashboardSpec décrit le tableau de bord riche d'un plugin (cartes KPI,
-// jauge de ratio, courbe du jour). Entièrement server-driven : le renderer
-// générique ne connaît aucun plugin.
+// jauge de ratio, courbe du jour, schéma de flux). Entièrement server-driven :
+// le renderer générique ne connaît aucun plugin.
 type DashboardSpec struct {
 	Cards []CardSpec `json:"cards,omitempty"`
 	Gauge *GaugeSpec `json:"gauge,omitempty"`
 	Chart *ChartSpec `json:"chart,omitempty"`
+	Flow  *FlowSpec  `json:"flow,omitempty"`
+}
+
+// FlowSpec décrit le schéma de flux d'énergie (PV / maison / batterie /
+// réseau). Chaque champ référence une métrique de puissance du snapshot ;
+// le renderer anime les liens selon le sens réel du flux.
+type FlowSpec struct {
+	PV               string `json:"pv"`                          // production (kW)
+	Load             string `json:"load"`                        // consommation maison (kW)
+	GridImport       string `json:"grid_import,omitempty"`       // soutirage (kW)
+	GridExport       string `json:"grid_export,omitempty"`       // injection (kW)
+	BatteryCharge    string `json:"battery_charge,omitempty"`    // charge batterie (kW)
+	BatteryDischarge string `json:"battery_discharge,omitempty"` // décharge batterie (kW)
+	BatterySoc       string `json:"battery_soc,omitempty"`       // état de charge (%)
 }
 
 // CardSpec est une carte KPI : valeur principale + sous-ligne.

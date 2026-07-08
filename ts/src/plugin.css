@@ -284,3 +284,99 @@
   font-size: 11.5px;
   color: var(--essensys-text-muted, #6b7280);
 }
+
+/* ---------- Bascule Tableau / Schéma ---------- */
+
+.ess-plugin__views {
+  display: inline-flex;
+  gap: 4px;
+  margin-left: auto;
+  padding: 3px;
+  background: var(--essensys-bg-page, #f8f8f8);
+  border: 1px solid var(--essensys-border, #e2e8f0);
+  border-radius: 9px;
+}
+.ess-plugin__views + .ess-plugin__ro {
+  margin-left: 10px;
+}
+.ess-plugin__views button {
+  border: 0;
+  background: transparent;
+  color: var(--essensys-text-muted, #6b7280);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 650;
+  padding: 4px 11px;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: 0.18s;
+}
+.ess-plugin__views button:hover {
+  color: var(--essensys-text-main, #111827);
+}
+.ess-plugin__views button.is-active {
+  background: var(--essensys-primary, #2563eb);
+  color: #fff;
+  box-shadow: 0 4px 10px -4px color-mix(in srgb, var(--essensys-primary, #2563eb) 60%, transparent);
+}
+
+/* ---------- Schéma de flux ---------- */
+
+.ess-flow {
+  position: relative;
+  background: var(--essensys-bg-card, #fff);
+  border: 1px solid var(--essensys-border, #e2e8f0);
+  border-radius: 16px;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05), 0 8px 24px -12px rgba(16, 24, 40, 0.12);
+  padding: 6px;
+  overflow: hidden;
+}
+.ess-flow svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.ess-flow__dash {
+  stroke-dasharray: 7 9;
+  animation: ess-dashmove 1.1s linear infinite;
+}
+.ess-flow__dash--rev {
+  animation-direction: reverse;
+}
+@keyframes ess-dashmove {
+  to {
+    stroke-dashoffset: -32;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ess-flow__dash {
+    stroke-dasharray: none;
+    animation: none;
+  }
+}
+
+.ess-flow__legend {
+  position: absolute;
+  left: 16px;
+  bottom: 14px;
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.ess-flow__legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  color: var(--essensys-text-muted, #6b7280);
+  font-weight: 600;
+}
+.ess-flow__legend i {
+  width: 16px;
+  height: 3px;
+  border-radius: 2px;
+  display: inline-block;
+}
